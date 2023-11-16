@@ -88,7 +88,7 @@ class RFIData(BaseModel):
 
 def connect(filename: str, readonly: bool = True) -> None:
     """Connect to the database.
-    
+
     Parameters
     ----------
     filename
@@ -97,7 +97,6 @@ def connect(filename: str, readonly: bool = True) -> None:
         If set, open the file in read-only mode. If not set, open in read-write mode and
         ensure all the tables are created.
     """
-
     uri = "file:" + filename
 
     if readonly:

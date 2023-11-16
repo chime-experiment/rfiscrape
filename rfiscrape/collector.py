@@ -1,17 +1,16 @@
 """A microservice for collecting the RFI data and writing into a buffer."""
 
 import argparse
-from dataclasses import dataclass, field
 import logging
 import queue
 import threading
 import time
+from dataclasses import dataclass, field
 
-from aiohttp import web
 import numpy as np
+from aiohttp import web
 
 from . import db, prioritymap
-
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("aiohttp").setLevel(logging.WARN)
@@ -91,7 +90,7 @@ def assembler(window: int, nfreq: int):
             oldest = entries.peek()[0]
             logger.info(
                 f"Received an entry with too old a timestamp {timestamp}. "
-                f"Current oldest {oldest}"
+                f"Current oldest {oldest}",
             )
             continue
 
@@ -138,7 +137,6 @@ def writer(output_file: str, buffer_time: float, purge_interval: float | None = 
     purge_interval
         How often to remove expired samples. If not set, use 10% of `purge_interval`.
     """
-
     db.connect(output_file, readonly=False)
 
     prev = None
@@ -172,7 +170,7 @@ def writer(output_file: str, buffer_time: float, purge_interval: float | None = 
         avg_excision = np.nanmean(dropped_frac, axis=-1)
         logger.info(
             f"Writing {data.timestamp}. Mean excision fraction: "
-            f"stage1={avg_excision[0]:.3%} stage2={avg_excision[1]:.3%}"
+            f"stage1={avg_excision[0]:.3%} stage2={avg_excision[1]:.3%}",
         )
 
         db.RFIData.create(
@@ -195,7 +193,7 @@ def writer(output_file: str, buffer_time: float, purge_interval: float | None = 
         if (time.time() - last_purge) > purge_interval:
             oldest_record = time.time() - buffer_time
             delete_query = db.RFIData.delete().where(
-                db.RFIData.timestamp < oldest_record
+                db.RFIData.timestamp < oldest_record,
             )
 
             records_deleted = delete_query.execute()
@@ -258,7 +256,7 @@ def main():
     # Start the assembly and writing threads
     assembler_thread = threading.Thread(target=assembler, args=(args.window, nfreq))
     writer_thread = threading.Thread(
-        target=writer, args=(args.output, args.time, args.purge)
+        target=writer, args=(args.output, args.time, args.purge),
     )
     assembler_thread.start()
     writer_thread.start()

@@ -1,11 +1,11 @@
 """A minimal dependency script for fetching kotekan RFI data and sending it on."""
 
 import argparse
-from email.utils import parsedate_to_datetime
 import math
 import random
 import re
 import time
+from email.utils import parsedate_to_datetime
 
 import requests
 
@@ -19,7 +19,7 @@ import requests
 # Regex for selecting the relevant metrics and extracting the required parts
 metric_pattern = re.compile(
     r"^kotekan_rfi(?P<stage>broadcast|framedrop)_?(?P<type>\w*)_"
-    r"(?:sample|frame)_total\{.*freq_id=\"(?P<freq>\d+)\"\} (?P<count>\d+)"
+    r"(?:sample|frame)_total\{.*freq_id=\"(?P<freq>\d+)\"\} (?P<count>\d+)",
 )
 
 
@@ -33,7 +33,6 @@ def scrape(target: str, timeout: float) -> dict:
 
     Timeout after the given number of seconds.
     """
-
     r = requests.get(f"http://{target}/metrics", timeout=timeout)
 
     metrics = r.content.decode().splitlines()
@@ -78,14 +77,13 @@ def scrape(target: str, timeout: float) -> dict:
 
     return {
         "time": timestamp,
-        "freq": list(sorted(freq)),
+        "freq": sorted(freq),
         "data": output,
     }
 
 
 def main():
     """Client main loop."""
-
     # Parse the command line arguments
     parser = argparse.ArgumentParser(
         prog="rfiscrape-client",

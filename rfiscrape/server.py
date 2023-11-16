@@ -1,7 +1,7 @@
 import argparse
 
-from aiohttp import web
 import numpy as np
+from aiohttp import web
 
 from . import db, util
 
@@ -24,7 +24,7 @@ async def get_rfi(request):
     freq_end = body.get("freq_end", None)
 
     timestamps, freq, data = query_db(
-        start_time, end_time, spec_type, freq_start, freq_end
+        start_time, end_time, spec_type, freq_start, freq_end,
     )
 
     encoded_data = {
@@ -37,7 +37,7 @@ async def get_rfi(request):
 
 
 def decode(
-    spec: db.SpectrumType, enc: db.EncodingType, data: bytes
+    spec: db.SpectrumType, enc: db.EncodingType, data: bytes,
 ) -> np.ndarray:
     return np.frombuffer(data, dtype=np.float32, count=-1)
 
@@ -51,7 +51,7 @@ def query_db(
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     query = db.RFIData.select().where(db.RFIData.spectrum_type == spec_type)
     query = query.where(
-        db.RFIData.timestamp > start_time, db.RFIData.timestamp < end_time
+        db.RFIData.timestamp > start_time, db.RFIData.timestamp < end_time,
     )
 
     # Add the frequency constraints if set
@@ -72,7 +72,7 @@ def query_db(
     freq = np.arange(chunks[0] * chunksize, (chunks[-1] + 1) * chunksize)
 
     output_data = np.full(
-        (len(timestamps), len(chunks), chunksize), fill_value=np.nan, dtype=np.float32
+        (len(timestamps), len(chunks), chunksize), fill_value=np.nan, dtype=np.float32,
     )
 
     for r in results:

@@ -1,5 +1,6 @@
 import heapq
-from typing import Callable, Hashable, Any
+from collections.abc import Callable, Hashable
+from typing import Any
 
 
 class OutOfOrder(RuntimeError):
@@ -25,6 +26,7 @@ class PriorityMap:
         If the key currently exists silently return. If not set, a `KeyError` exception
         will be raised.
     """
+
     def __init__(
         self, maxlength: int, strict: bool = False, ignore_existing: bool = False,
     ) -> None:
@@ -71,14 +73,14 @@ class PriorityMap:
         # Decide what to do if the key exists
         if key in self:
             if self._ignore_existing:
-                return None
+                return
             else:
                 raise KeyError(f'Key "{key}" already exists in map.')
 
         if len(self._items) == (self._maxlength + (1 if _bump else 0)):
             raise FullContainer(
                 "Too many items in map. "
-                "Currently {len(self._items)} but maxlength is {self._maxlength}."
+                "Currently {len(self._items)} but maxlength is {self._maxlength}.",
             )
 
         priority_pair = self._priority_pair(priority, key)
@@ -87,7 +89,7 @@ class PriorityMap:
         if self._strict and self._priorities and priority_pair < self._priorities[0]:
             raise OutOfOrder(
                 f"Priority of new item {priority_pair[0]} is lower than "
-                f"the lowest in the map {self._priorities[0]}."
+                f"the lowest in the map {self._priorities[0]}.",
             )
 
         self._items[key] = call() if call else value
@@ -169,7 +171,6 @@ class PriorityMap:
             Returns `None` if the map is not full, otherwise return the lowest key,
             value pair.
         """
-
         # We could do a slightly more efficient combined update, but this is much
         # simpler
         self.push(

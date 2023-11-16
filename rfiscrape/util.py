@@ -42,7 +42,6 @@ def convert_unix(t: int | float | str) -> float:
 
 def numpy_to_json(arr: np.ndarray) -> dict:
     """Take an array and return as a dict that can be json serialised."""
-
     return {
         "dtype": str(arr.dtype),
         "shape": list(arr.shape),
@@ -63,14 +62,14 @@ def json_to_numpy(jdict: dict) -> np.ndarray:
         arr = np.frombuffer(base64.b64decode(data_str.encode("utf8")), dtype=dtype)
     except Exception as e:
         raise RuntimeError(
-            f"Could not decode base64 string into a valid array of dtype {dtype}"
+            f"Could not decode base64 string into a valid array of dtype {dtype}",
         ) from e
 
     try:
         arr = arr.reshape(shape)
     except Exception as e:
         raise RuntimeError(
-            f"Could not transform into array of specified shape {shape}"
+            f"Could not transform into array of specified shape {shape}",
         ) from e
 
     return arr
