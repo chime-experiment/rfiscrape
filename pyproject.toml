@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rfiscrape"
+description = "Scrape CHIME RFI statistics"
+requires-python = ">=3.10"
+dynamic = ["readme"]
+version = "2023.11"
+license = {text = "MIT"}
+dependencies = [
+    "aiohttp",
+    "peewee",
+    "numpy",
+    "python-dateutil",
+    "requests",
+]
+
+[project.scripts]
+rfiscrape-client = "rfiscrape.client:main"
+rfiscrape-collector = "rfiscrape.collector:main"
+rfiscrape-server = "rfiscrape.server:main"
+
+[tool.setuptools.packages]
+find = {namespaces = false}
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.md"], content-type = "text/markdown"}
+
+[tool.ruff]
+select = ["ALL"]
+ignore = [
+    "TRY003", "EM101", "EM102", "ANN101", "ANN102", "ANN202", "ANN204", "PD002",
+    "B905", "FBT001", "FBT002", "D401", "T201",
+]
+extend-exclude = ["code"]
+
+[tool.ruff.pydocstyle]
+convention = "numpy"
+
+[tool.black]
+extend-exclude = '^/(code|venv)'
