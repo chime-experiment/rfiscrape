@@ -17,7 +17,7 @@ def test_push():
 
     assert len(p) == 3
 
-    with pytest.raises(prioritymap.FullContainer):
+    with pytest.raises(prioritymap.FullContainerError):
         p.push("d", 8)
 
     assert len(p) == 3
@@ -58,7 +58,7 @@ def test_strict():
     p.push("c", 7)
     assert len(p) == 1
 
-    with pytest.raises(prioritymap.OutOfOrder):
+    with pytest.raises(prioritymap.OutOfOrderError):
         p.push("a", 5)
 
     assert len(p) == 1
@@ -69,7 +69,7 @@ def test_strict():
 
     p.pop()
     assert len(p) == 2
-    with pytest.raises(prioritymap.OutOfOrder):
+    with pytest.raises(prioritymap.OutOfOrderError):
         p.push("c", 7)
 
 

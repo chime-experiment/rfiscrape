@@ -82,7 +82,7 @@ def scrape(target: str, timeout: float) -> dict:
     }
 
 
-def main():
+def main() -> None:
     """Client main loop."""
     # Parse the command line arguments
     parser = argparse.ArgumentParser(
@@ -122,7 +122,7 @@ def main():
         # Fetch the data and insert the sequence ID
         try:
             s = scrape(args.target, scrape_timeout)
-        except Exception:
+        except (requests.ConnectionError, requests.HTTPError, requests.Timeout):
             continue
 
         # Insert the target time
@@ -131,13 +131,13 @@ def main():
 
         # Sleep a random amount to spread out the requests on the server
         time_until_next = next_time + args.interval - time.time()
-        random_sleep = 0.2 * time_until_next * random.random()
+        random_sleep = 0.2 * time_until_next * random.random()  # noqa: S311
         time.sleep(random_sleep)
 
         # Push over to the collection server
         try:
             session.post(server_url, json=s, timeout=push_timeout)
-        except Exception:
+        except (requests.ConnectionError, requests.HTTPError, requests.Timeout):
             continue
 
 

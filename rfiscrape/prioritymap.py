@@ -1,13 +1,15 @@
+"""A prioritised map like structure."""
+
 import heapq
 from collections.abc import Callable, Hashable
 from typing import Any
 
 
-class OutOfOrder(RuntimeError):
+class OutOfOrderError(RuntimeError):
     """Tried to insert entries out of order."""
 
 
-class FullContainer(RuntimeError):
+class FullContainerError(RuntimeError):
     """The container is already full."""
 
 
@@ -68,17 +70,16 @@ class PriorityMap:
             If the key currently exists silently return. If not set, an exception will
             be raised.
         """
-        # _bump is an internal argument that allows us to temporarily exceed the size by 1.
+        # _bump is an internal argument allowing us to temporarily exceed the size by 1.
 
         # Decide what to do if the key exists
         if key in self:
             if self._ignore_existing:
                 return
-            else:
-                raise KeyError(f'Key "{key}" already exists in map.')
+            raise KeyError(f'Key "{key}" already exists in map.')
 
         if len(self._items) == (self._maxlength + (1 if _bump else 0)):
-            raise FullContainer(
+            raise FullContainerError(
                 "Too many items in map. "
                 "Currently {len(self._items)} but maxlength is {self._maxlength}.",
             )
@@ -87,7 +88,7 @@ class PriorityMap:
 
         # Don't do anything in strict mode if the new item would have too low priority
         if self._strict and self._priorities and priority_pair < self._priorities[0]:
-            raise OutOfOrder(
+            raise OutOfOrderError(
                 f"Priority of new item {priority_pair[0]} is lower than "
                 f"the lowest in the map {self._priorities[0]}.",
             )
@@ -117,7 +118,7 @@ class PriorityMap:
         return len(self._items)
 
     def __contains__(self, key: Hashable) -> bool:
-        """Is the item in the map already?"""
+        """Determine if the item in the map already."""
         return key in self._items
 
     def pop(self) -> tuple[Hashable, Any]:
@@ -183,38 +184,18 @@ class PriorityMap:
 
         if len(self) > self._maxlength:
             return self.pop()
-        else:
-            return None, None
-
-        # # If we are not full, we can push and return None
-        # if len(self) < self._maxlength:
-        #     self.push(key, value, priority=priority, call=call)
-        #     return None
-
-        # # If the priority is lower than the current lowest decide whether to return the
-        # # item, or silently return None
-        # pair = self._priority_pair(priority, key)
-        # if pair < self._priorities[0]:
-        #     return None if strict else (key, value)
-
-        # # Otherwise we actually need to do something. push-pop the key, insert the new
-        # # item, and then return the old item
-        # _, oldkey = heapq.heappushpop(self._priorities, pair)
-        # self._items[key] = value() if call else value
-
-        # return oldkey, self._items.pop(oldkey)
+        return None, None
 
     def peek(self) -> tuple[Any, Hashable]:
         """Return the lowest priority-key pair."""
         return self._priorities[0]
 
-    def full(self):
-        """Is the map full?"""
+    def full(self) -> bool:
+        """Check if the map is full."""
         return len(self) == self._maxlength
 
-    def _priority_pair(self, priority, key):
+    def _priority_pair(self, priority: Any, key: Hashable):
         """Create the priority, key pair."""
         if priority is None:
             return (key, key)
-        else:
-            return (priority, key)
+        return (priority, key)

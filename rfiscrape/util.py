@@ -1,6 +1,7 @@
 """Utilities functions."""
 
 import base64
+import binascii
 import datetime
 
 import dateutil.parser
@@ -15,8 +16,8 @@ def naive_to_utc(dt: datetime.datetime) -> datetime.datetime:
     return dt.replace(tzinfo=datetime.timezone.utc)
 
 
-def convert_unix(t: int | float | str) -> float:
-    """Checks whether a date is a Unix timestamp or ISO8601 compliant
+def convert_unix(t: float | str) -> float:
+    """Checks whether a date is a Unix timestamp or ISO8601 compliant.
 
     Parameters
     ----------
@@ -32,12 +33,11 @@ def convert_unix(t: int | float | str) -> float:
     if isinstance(t, str):
         try:
             dt = dateutil.parser.parse(t)
-        except Exception as e:
+        except dateutil.parse.ParseError as e:
             raise RuntimeError("Could not parse the passed datetime string.") from e
 
         return naive_to_utc(dt).timestamp()
-    else:
-        return float(t)
+    return float(t)
 
 
 def numpy_to_json(arr: np.ndarray) -> dict:
@@ -55,19 +55,19 @@ def json_to_numpy(jdict: dict) -> np.ndarray:
         dtype = np.dtype(jdict["dtype"])
         shape = jdict["shape"]
         data_str = jdict["data"]
-    except KeyError:
-        raise RuntimeError("JSON does not represent a numpy array.")
+    except KeyError as e:
+        raise RuntimeError("JSON does not represent a numpy array.") from e
 
     try:
         arr = np.frombuffer(base64.b64decode(data_str.encode("utf8")), dtype=dtype)
-    except Exception as e:
+    except (binascii.Error, ValueError) as e:
         raise RuntimeError(
             f"Could not decode base64 string into a valid array of dtype {dtype}",
         ) from e
 
     try:
         arr = arr.reshape(shape)
-    except Exception as e:
+    except ValueError as e:
         raise RuntimeError(
             f"Could not transform into array of specified shape {shape}",
         ) from e

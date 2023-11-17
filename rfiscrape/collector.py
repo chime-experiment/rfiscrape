@@ -43,7 +43,8 @@ write_queue = queue.Queue()
 
 # A very simple async receiver, just push the data into a queue for another thread to
 # consume
-async def receive_rfi(request):
+async def receive_rfi(request: web.Request) -> web.Response:
+    """Handler for receiving RFI stats from the clients."""
     body = await request.json()
 
     assemble_queue.put(PrioritizedItem(priority=body["time"], item=body))
@@ -51,7 +52,7 @@ async def receive_rfi(request):
     return web.Response()
 
 
-def assembler(window: int, nfreq: int):
+def assembler(window: int, nfreq: int) -> None:
     """A worker to take the entries for each time/freq combo and assemble into samples.
 
     Parameters
@@ -63,7 +64,7 @@ def assembler(window: int, nfreq: int):
     """
     entries = prioritymap.PriorityMap(window, strict=True, ignore_existing=True)
 
-    def _create(timestamp):
+    def _create(timestamp: float):
         def f():
             return AssembledData(timestamp, nfreq)
 
@@ -86,7 +87,7 @@ def assembler(window: int, nfreq: int):
         # timestamp exists
         try:
             oldkey, oldvalue = entries.pushpop(timestamp, call=_create(timestamp))
-        except prioritymap.OutOfOrder:
+        except prioritymap.OutOfOrderError:
             oldest = entries.peek()[0]
             logger.info(
                 f"Received an entry with too old a timestamp {timestamp}. "
@@ -122,7 +123,9 @@ def assembler(window: int, nfreq: int):
     write_queue.join()
 
 
-def writer(output_file: str, buffer_time: float, purge_interval: float | None = None):
+def writer(
+    output_file: str, buffer_time: float, purge_interval: float | None = None,
+) -> None:
     """Write out the data into a sqlite buffer.
 
     This will store the actual amount of flagged samples within each interval by
@@ -205,7 +208,8 @@ def writer(output_file: str, buffer_time: float, purge_interval: float | None = 
     db.close()
 
 
-def main():
+def main() -> None:
+    """The CLI entrypoint."""
     # Parse the command line arguments
     parser = argparse.ArgumentParser(
         prog="rfiscrape-collector",

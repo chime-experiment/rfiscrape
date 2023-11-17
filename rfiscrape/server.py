@@ -1,3 +1,4 @@
+"""HTTP server for accessing RFI stats from the buffer."""
 import argparse
 
 import numpy as np
@@ -8,7 +9,8 @@ from . import db, util
 
 # A very simple async receiver, just push the data into a queue for another thread to
 # consume
-async def get_rfi(request):
+async def get_rfi(request: web.Request) -> web.Response:
+    """Handler for RFI data requests."""
     body = await request.json()
     try:
         start_time = util.convert_unix(body["start_time"])
@@ -39,6 +41,7 @@ async def get_rfi(request):
 def decode(
     spec: db.SpectrumType, enc: db.EncodingType, data: bytes,
 ) -> np.ndarray:
+    """Decode the data in the RFIData result."""
     return np.frombuffer(data, dtype=np.float32, count=-1)
 
 
@@ -49,6 +52,7 @@ def query_db(
     freq_start: int | None = None,
     freq_end: int | None = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Read RFI information from the buffer db."""
     query = db.RFIData.select().where(db.RFIData.spectrum_type == spec_type)
     query = query.where(
         db.RFIData.timestamp > start_time, db.RFIData.timestamp < end_time,
@@ -63,11 +67,11 @@ def query_db(
     results = list(query)
 
     # Get the list of timestamps. Use a set as they may be multiple frequency chunks
-    timestamps = np.array(sorted(set(r.timestamp for r in results)))
+    timestamps = np.array(sorted({r.timestamp for r in results}))
 
     ts_map = {ts: ii for ii, ts in enumerate(timestamps)}
 
-    chunks = sorted(set(r.freq_chunk for r in results))  # This should by [0]
+    chunks = sorted({r.freq_chunk for r in results})  # This should by [0]
     chunksize = 1024  # TODO: look this up from the spectrum/encoding type
     freq = np.arange(chunks[0] * chunksize, (chunks[-1] + 1) * chunksize)
 
@@ -92,7 +96,8 @@ def query_db(
     return timestamps, freq, output_data
 
 
-def main():
+def main() -> None:
+    """Main entry point for the RFI data server."""
     # Parse the command line arguments
     parser = argparse.ArgumentParser(
         prog="rfiscrape-server",

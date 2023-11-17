@@ -75,7 +75,7 @@ class RFIData(BaseModel):
         The data as a blob.
     """
 
-    id = pw.IntegerField(primary_key=True)
+    id = pw.IntegerField(primary_key=True)  # noqa: A003
     timestamp = pw.FloatField(index=True)
 
     freq_chunk = pw.SmallIntegerField()
