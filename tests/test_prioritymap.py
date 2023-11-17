@@ -1,3 +1,5 @@
+"""Test the priority map implementation."""
+
 import pytest
 
 from rfiscrape import prioritymap

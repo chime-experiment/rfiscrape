@@ -2,6 +2,7 @@
 from enum import Enum
 from typing import TypeVar
 
+import numpy as np
 import peewee as pw
 
 # Sqlite database model
@@ -117,6 +118,86 @@ def connect(filename: str, readonly: bool = True) -> None:
     # Ensure all the tables are created
     if not readonly:
         database.create_tables(BaseModel.__subclasses__(), safe=True)
+
+
+def decode(
+    spec: SpectrumType, enc: EncodingType, data: bytes,
+) -> np.ndarray:
+    """Decode the data in the RFIData result."""
+    if enc == EncodingType.RAW and spec in (SpectrumType.STAGE_1, SpectrumType.STAGE_2):
+        return np.frombuffer(data, dtype=np.float32, count=-1)
+
+    raise ValueError("Cannot decode data.")
+
+
+def fetch_rfi(
+    start_time: float,
+    end_time: float,
+    spec_type: SpectrumType,
+    freq_start: float | None = None,
+    freq_end: float | None = None,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Read RFI information from the buffer db.
+
+    Parameters
+    ----------
+    start_time, end_time
+        The start and end time to fetch as UTC Unix times.
+    spec_type
+        Which spectrum to fetch.
+    freq_start, freq_end
+        The frequency range to fetch in MHz.
+
+    Returns
+    -------
+    time
+        The times in the range.
+    freq
+        The frequencies in the range.
+    data
+        The 2D dataset. Missing data is marked with np.nan.
+    """
+    query = RFIData.select().where(RFIData.spectrum_type == spec_type)
+    query = query.where(
+        RFIData.timestamp > start_time, RFIData.timestamp < end_time,
+    )
+
+    # Add the frequency constraints if set
+    # if freq_start:
+    #     query = query.where(db.RFIData.freq_low < freq_end)
+    # if freq_end:
+    #     query = query.where(db.RFIData.freq_high > freq_start)
+
+    results = list(query)
+
+    # Get the list of timestamps. Use a set as they may be multiple frequency chunks
+    timestamps = np.array(sorted({r.timestamp for r in results}))
+
+    ts_map = {ts: ii for ii, ts in enumerate(timestamps)}
+
+    chunks = sorted({r.freq_chunk for r in results})  # This should by [0]
+    chunksize = 1024  # TODO: look this up from the spectrum/encoding type
+    freq = np.arange(chunks[0] * chunksize, (chunks[-1] + 1) * chunksize)
+
+    output_data = np.full(
+        (len(timestamps), len(chunks), chunksize), fill_value=np.nan, dtype=np.float32,
+    )
+
+    for r in results:
+        ti = ts_map[r.timestamp]
+        ci = 0
+
+        output_data[ti, ci] = decode(spec_type, r.encoding_type, r.data)
+
+    # Flatten across chunks
+    output_data = output_data.reshape(len(timestamps), -1)
+
+    # Extract the required part
+    if freq_start is not None or freq_end is not None:
+        output_data = output_data[:, freq_start:freq_end].copy()
+        freq = freq[freq_start:freq_end]
+
+    return timestamps, freq, output_data
 
 
 def close() -> None:

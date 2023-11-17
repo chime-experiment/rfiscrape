@@ -13,6 +13,10 @@ class FullContainerError(RuntimeError):
     """The container is already full."""
 
 
+PriorityType = int | float | str
+KeyType = Hashable
+ValueType = Any
+
 class PriorityMap:
     """A key-value map with prioritised item and maximum capacity.
 
@@ -42,10 +46,10 @@ class PriorityMap:
 
     def push(
         self,
-        key: Hashable,
-        value: Any | None = None,
-        priority: Any | None = None,
-        call: Callable[[], Any] | None = None,
+        key: KeyType,
+        value: ValueType | None = None,
+        priority: PriorityType | None = None,
+        call: Callable[[], ValueType] | None = None,
         _bump: bool = False,
     ) -> None:
         """Add an item to the map.
@@ -96,7 +100,7 @@ class PriorityMap:
         self._items[key] = call() if call else value
         heapq.heappush(self._priorities, priority_pair)
 
-    def get(self, key: Any) -> Any:
+    def get(self, key: KeyType) -> ValueType:
         """Get the value corresponding to the key.
 
         Parameters
@@ -117,11 +121,11 @@ class PriorityMap:
         """Number of items in the map."""
         return len(self._items)
 
-    def __contains__(self, key: Hashable) -> bool:
+    def __contains__(self, key: KeyType) -> bool:
         """Determine if the item in the map already."""
         return key in self._items
 
-    def pop(self) -> tuple[Hashable, Any]:
+    def pop(self) -> tuple[KeyType, ValueType]:
         """Remove the lowest priority item and its key-value pair.
 
         Returns
@@ -138,10 +142,10 @@ class PriorityMap:
     def pushpop(
         self,
         key: Hashable,
-        value: Any | None = None,
-        priority: Any | None = None,
-        call: Callable[[], Any] | None = None,
-    ) -> tuple[Hashable, Any] | tuple[None, None]:
+        value: ValueType | None = None,
+        priority: PriorityType | None = None,
+        call: Callable[[], ValueType] | None = None,
+    ) -> tuple[KeyType, ValueType] | tuple[None, None]:
         """Add an item to the map and return the lowest priority item only if it's full.
 
         This may return the item being passed if it is lower priority that the current
@@ -186,7 +190,7 @@ class PriorityMap:
             return self.pop()
         return None, None
 
-    def peek(self) -> tuple[Any, Hashable]:
+    def peek(self) -> tuple[PriorityType, KeyType]:
         """Return the lowest priority-key pair."""
         return self._priorities[0]
 
@@ -194,7 +198,9 @@ class PriorityMap:
         """Check if the map is full."""
         return len(self) == self._maxlength
 
-    def _priority_pair(self, priority: Any, key: Hashable):
+    def _priority_pair(
+        self, priority: PriorityType | None, key: KeyType,
+    ) -> tuple[PriorityType | KeyType, KeyType]:
         """Create the priority, key pair."""
         if priority is None:
             return (key, key)

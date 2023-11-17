@@ -225,8 +225,8 @@ def main() -> None:
         default=5,
     )
     parser.add_argument(
-        "-o",
-        "--output",
+        "-b",
+        "--buffer",
         type=str,
         help="Name of the buffer output file",
         default="buffer.sql",
@@ -254,13 +254,12 @@ def main() -> None:
         default=8464,
     )
     nfreq = 1024
-    parser.add_argument("server", type=str, help="The hostname:port of the collector.")
     args = parser.parse_args()
 
     # Start the assembly and writing threads
     assembler_thread = threading.Thread(target=assembler, args=(args.window, nfreq))
     writer_thread = threading.Thread(
-        target=writer, args=(args.output, args.time, args.purge),
+        target=writer, args=(args.buffer, args.time, args.purge),
     )
     assembler_thread.start()
     writer_thread.start()
