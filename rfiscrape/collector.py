@@ -220,7 +220,7 @@ def main() -> None:
         type=int,
         help=(
             "Size of the assembly window. Shorter reduces the latency into the buffer "
-            "at the expense of losing more out of order data."
+            "at the expense of losing more out of order data. Defaults to 5 samples."
         ),
         default=5,
     )
@@ -228,14 +228,14 @@ def main() -> None:
         "-b",
         "--buffer",
         type=str,
-        help="Name of the buffer output file",
+        help="Name of the buffer output file. Default is 'buffer.sql'.",
         default="buffer.sql",
     )
     parser.add_argument(
         "-t",
         "--time",
         type=int,
-        help="Length of the buffer in seconds.",
+        help="Length of the buffer in seconds. Defaults to 60s.",
         default=60,
     )
     parser.add_argument(
@@ -243,14 +243,14 @@ def main() -> None:
         type=int,
         help=(
             "Interval between purging expired samples. "
-            "If not set, uses 10% of the buffer length."
+            "If not set, uses 10%% of the buffer length."
         ),
         default=None,
     )
     parser.add_argument(
         "--port",
         type=int,
-        help="Port to listen on.",
+        help="Port to listen on. Default is 8464.",
         default=8464,
     )
     nfreq = 1024

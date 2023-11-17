@@ -46,13 +46,13 @@ def main() -> None:
         "-b",
         "--buffer",
         type=str,
-        help="Name of the buffer file",
+        help="Name of the buffer file. Defaults to 'buffer.sql'.",
         default="buffer.sql",
     )
     parser.add_argument(
         "--port",
         type=int,
-        help="Port to listen on.",
+        help="Port to listen on. Defaults to 8465.",
         default=8465,
     )
     args = parser.parse_args()
