@@ -31,9 +31,18 @@ def convert_unix(t: float | str) -> float:
         s is invalid type for date
     """
     if isinstance(t, str):
+
+        # First check to see if this is just a UNIX timestamp as a string
+        try:
+            dt = float(t)
+            return dt
+        except ValueError:
+            pass
+
+        # If note, hopefully it's a timestamp
         try:
             dt = dateutil.parser.parse(t)
-        except dateutil.parse.ParseError as e:
+        except dateutil.parser.ParseError as e:
             raise RuntimeError("Could not parse the passed datetime string.") from e
 
         return naive_to_utc(dt).timestamp()
