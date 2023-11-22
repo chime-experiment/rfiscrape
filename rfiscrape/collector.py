@@ -12,7 +12,10 @@ from aiohttp import web
 
 from . import db, prioritymap
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(name)s %(levelname)s:%(message)s"
+)
 logging.getLogger("aiohttp").setLevel(logging.WARN)
 logger = logging.getLogger(__name__)
 
@@ -109,8 +112,11 @@ def assembler(window: int, nfreq: int) -> None:
 
         counts = np.array(data["data"]).astype(np.float32)
 
-        entry.dropped[:, freq_ind] = counts[:, 1]
-        entry.total[:, freq_ind] = counts[:, 0]
+        try:
+            entry.dropped[:, freq_ind] = counts[:, 1]
+            entry.total[:, freq_ind] = counts[:, 0]
+        except IndexError as e:
+            logger.error(f"Issue with indexing skipping. {freq_ind=}")
 
     # We need to pass all the current entries along to get written out
     while len(entries) > 0:
