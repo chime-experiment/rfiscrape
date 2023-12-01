@@ -34,8 +34,7 @@ def convert_unix(t: float | str) -> float:
 
         # First check to see if this is just a UNIX timestamp as a string
         try:
-            dt = float(t)
-            return dt
+            return float(t)
         except ValueError:
             pass
 

@@ -1,6 +1,5 @@
 """A microservice for collecting the RFI data and writing into a buffer."""
 
-import argparse
 import logging
 import queue
 import threading
@@ -10,11 +9,11 @@ from dataclasses import dataclass, field
 import numpy as np
 from aiohttp import web
 
-from . import db, prioritymap
+from . import config, db, prioritymap
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s %(name)s %(levelname)s:%(message)s"
+    format="%(asctime)s %(name)s %(levelname)s:%(message)s",
 )
 logging.getLogger("aiohttp").setLevel(logging.WARN)
 logger = logging.getLogger(__name__)
@@ -115,8 +114,8 @@ def assembler(window: int, nfreq: int) -> None:
         try:
             entry.dropped[:, freq_ind] = counts[:, 1]
             entry.total[:, freq_ind] = counts[:, 0]
-        except IndexError as e:
-            logger.error(f"Issue with indexing skipping. {freq_ind=}")
+        except IndexError:
+            logger.exception(f"Issue with indexing skipping. {freq_ind=}")
 
     # We need to pass all the current entries along to get written out
     while len(entries) > 0:
@@ -130,7 +129,7 @@ def assembler(window: int, nfreq: int) -> None:
 
 
 def writer(
-    output_file: str, buffer_time: float, purge_interval: float | None = None,
+    output_file: str, buffer_time: float, purge_interval: float,
 ) -> None:
     """Write out the data into a sqlite buffer.
 
@@ -144,7 +143,7 @@ def writer(
     buffer_time
         The length of the buffer to maintain.
     purge_interval
-        How often to remove expired samples. If not set, use 10% of `purge_interval`.
+        How often to remove expired samples in seconds.
     """
     db.connect(output_file, readonly=False)
 
@@ -153,8 +152,6 @@ def writer(
     # Set the last_purge to be at the epoch to ensure we purge at the first run, and
     # determine how often to purge.
     last_purge = 0.0
-    if not purge_interval:
-        purge_interval = 0.1 * buffer_time
 
     while True:
         item = write_queue.get()
@@ -217,55 +214,24 @@ def writer(
 def main() -> None:
     """The CLI entrypoint."""
     # Parse the command line arguments
-    parser = argparse.ArgumentParser(
+    conf = config.process_args_and_config(
         prog="rfiscrape-collector",
         description="Collect RFI stats from kotekan and assemble into a ondisk buffer.",
-    )
-    parser.add_argument(
-        "--window",
-        type=int,
-        help=(
-            "Size of the assembly window. Shorter reduces the latency into the buffer "
-            "at the expense of losing more out of order data. Defaults to 5 samples."
-        ),
-        default=5,
-    )
-    parser.add_argument(
-        "-b",
-        "--buffer",
-        type=str,
-        help="Name of the buffer output file. Default is 'buffer.sql'.",
-        default="buffer.sql",
-    )
-    parser.add_argument(
-        "-t",
-        "--time",
-        type=int,
-        help="Length of the buffer in seconds. Defaults to 60s.",
-        default=60,
-    )
-    parser.add_argument(
-        "--purge",
-        type=int,
-        help=(
-            "Interval between purging expired samples. "
-            "If not set, uses 10%% of the buffer length."
-        ),
-        default=None,
-    )
-    parser.add_argument(
-        "--port",
-        type=int,
-        help="Port to listen on. Default is 8464.",
-        default=8464,
+        schema=config.schema,
+        sections=["common", "server"],
+        configbase="rfiscrape",
     )
     nfreq = 1024
-    args = parser.parse_args()
+
+    # Convert the purge config into an actual interval in seconds
+    if conf["purge"] <= 0:
+        raise ValueError("Purge interval must be positive.")
+    purge = conf["time"] * conf["purge"] if conf["purge"] < 1 else conf["purge"]
 
     # Start the assembly and writing threads
-    assembler_thread = threading.Thread(target=assembler, args=(args.window, nfreq))
+    assembler_thread = threading.Thread(target=assembler, args=(conf["window"], nfreq))
     writer_thread = threading.Thread(
-        target=writer, args=(args.buffer, args.time, args.purge),
+        target=writer, args=(conf["buffer"], conf["time"], purge),
     )
     assembler_thread.start()
     writer_thread.start()
@@ -273,7 +239,7 @@ def main() -> None:
     # Start the collector HTTP server on the main thread
     app = web.Application()
     app.add_routes([web.post("/rfi", receive_rfi)])
-    web.run_app(app, port=args.port)
+    web.run_app(app, port=conf["port"])
 
     # If this exits then we need to flush and close the threads. We do this by placing
     # the None sentinel into the queue which signals a shutdown

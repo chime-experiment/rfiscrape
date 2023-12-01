@@ -159,7 +159,7 @@ def fetch_rfi(
     """
     query = RFIData.select().where(RFIData.spectrum_type == spec_type)
     query = query.where(
-        RFIData.timestamp > start_time, RFIData.timestamp < end_time,
+        RFIData.timestamp >= start_time, RFIData.timestamp < end_time,
     )
 
     # Add the frequency constraints if set
@@ -177,7 +177,13 @@ def fetch_rfi(
 
     chunks = sorted({r.freq_chunk for r in results})  # This should by [0]
     chunksize = 1024  # TODO: look this up from the spectrum/encoding type
-    freq = np.arange(chunks[0] * chunksize, (chunks[-1] + 1) * chunksize)
+
+    if chunks:
+        freq = np.arange(
+            chunks[0] * chunksize, (chunks[-1] + 1) * chunksize, dtype=np.int32,
+        )
+    else:
+        freq = np.zeros((0,), dtype=np.int32)
 
     output_data = np.full(
         (len(timestamps), len(chunks), chunksize), fill_value=np.nan, dtype=np.float32,
