@@ -15,6 +15,7 @@ dependencies = ["aiohttp", "peewee", "numpy", "python-dateutil", "requests"]
 rfiscrape-client = "rfiscrape.client:main"
 rfiscrape-collector = "rfiscrape.collector:main"
 rfiscrape-server = "rfiscrape.server:main"
+rfiscrape-archiver = "rfiscrape.archiver:main"
 
 [tool.setuptools.packages]
 find = { namespaces = false }
