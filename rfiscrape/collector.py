@@ -129,7 +129,9 @@ def assembler(window: int, nfreq: int) -> None:
 
 
 def writer(
-    output_file: str, buffer_time: float, purge_interval: float,
+    output_file: str,
+    buffer_time: float,
+    purge_interval: float,
 ) -> None:
     """Write out the data into a sqlite buffer.
 
@@ -231,7 +233,7 @@ def main() -> None:
     # Start the assembly and writing threads
     assembler_thread = threading.Thread(target=assembler, args=(conf["window"], nfreq))
     writer_thread = threading.Thread(
-        target=writer, args=(conf["buffer"], conf["time"], purge),
+        target=writer, args=(conf["buffer"], conf["time"], purge)
     )
     assembler_thread.start()
     writer_thread.start()

@@ -44,7 +44,7 @@ schema = {
         "port": Param(int, 8464, "The port for the collector to listen on."),
         "window": Param(int, 5, "The length of the assembly window."),
         "time": Param(
-            int, 3600 * 24 * 7, "The maximum length of the buffer in seconds.",
+            int, 3600 * 24 * 7, "The maximum length of the buffer in seconds."
         ),
         "purge": Param(
             float,
@@ -125,14 +125,14 @@ def process_args_and_config(  # noqa: PLR0913
     args = parser.parse_args()
 
     file_config = load_standard_config_files(
-        configbase or prog, args.config_file, sections=sections,
+        configbase or prog, args.config_file, sections=sections
     )
 
     return resolve_config(flattened_params, vars(args), file_config)
 
 
 def load_standard_config_files(
-    name: str, extra_file: str | None = None, sections: list[str] | None = None,
+    name: str, extra_file: str | None = None, sections: list[str] | None = None
 ) -> list[dict]:
     """Load config files from the standard locations.
 

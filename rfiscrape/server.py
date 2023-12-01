@@ -17,7 +17,7 @@ def _rfidata_to_json(time: np.ndarray, freq: np.ndarray, data: np.ndarray) -> di
 
 
 def _rfidata_to_numpy_bytes(
-    time: np.ndarray, freq: np.ndarray, data: np.ndarray,
+    time: np.ndarray, freq: np.ndarray, data: np.ndarray
 ) -> dict:
     with BytesIO() as f:
         np.savez(f, time=time, freq=freq, data=data)
@@ -25,7 +25,7 @@ def _rfidata_to_numpy_bytes(
 
 
 def _rfidata_to_h5py_bytes(
-    time: np.ndarray, freq: np.ndarray, data: np.ndarray,
+    time: np.ndarray, freq: np.ndarray, data: np.ndarray
 ) -> dict:
     with BytesIO() as f:
         with h5py.File(f, mode="w") as fh:

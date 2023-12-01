@@ -17,6 +17,7 @@ PriorityType = int | float | str
 KeyType = Hashable
 ValueType = Any
 
+
 class PriorityMap:
     """A key-value map with prioritised item and maximum capacity.
 
@@ -34,7 +35,7 @@ class PriorityMap:
     """
 
     def __init__(
-        self, maxlength: int, strict: bool = False, ignore_existing: bool = False,
+        self, maxlength: int, strict: bool = False, ignore_existing: bool = False
     ) -> None:
         self._maxlength = maxlength
         self._strict = strict
@@ -178,13 +179,7 @@ class PriorityMap:
         """
         # We could do a slightly more efficient combined update, but this is much
         # simpler
-        self.push(
-            key,
-            value=value,
-            priority=priority,
-            call=call,
-            _bump=True,
-        )
+        self.push(key, value=value, priority=priority, call=call, _bump=True)
 
         if len(self) > self._maxlength:
             return self.pop()
@@ -199,7 +194,7 @@ class PriorityMap:
         return len(self) == self._maxlength
 
     def _priority_pair(
-        self, priority: PriorityType | None, key: KeyType,
+        self, priority: PriorityType | None, key: KeyType
     ) -> tuple[PriorityType | KeyType, KeyType]:
         """Create the priority, key pair."""
         if priority is None:

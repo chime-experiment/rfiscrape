@@ -31,7 +31,6 @@ def convert_unix(t: float | str) -> float:
         s is invalid type for date
     """
     if isinstance(t, str):
-
         # First check to see if this is just a UNIX timestamp as a string
         try:
             return float(t)

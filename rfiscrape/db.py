@@ -120,9 +120,7 @@ def connect(filename: str, readonly: bool = True) -> None:
         database.create_tables(BaseModel.__subclasses__(), safe=True)
 
 
-def decode(
-    spec: SpectrumType, enc: EncodingType, data: bytes,
-) -> np.ndarray:
+def decode(spec: SpectrumType, enc: EncodingType, data: bytes) -> np.ndarray:
     """Decode the data in the RFIData result."""
     if enc == EncodingType.RAW and spec in (SpectrumType.STAGE_1, SpectrumType.STAGE_2):
         return np.frombuffer(data, dtype=np.float32, count=-1)
@@ -158,9 +156,7 @@ def fetch_rfi(
         The 2D dataset. Missing data is marked with np.nan.
     """
     query = RFIData.select().where(RFIData.spectrum_type == spec_type)
-    query = query.where(
-        RFIData.timestamp >= start_time, RFIData.timestamp < end_time,
-    )
+    query = query.where(RFIData.timestamp >= start_time, RFIData.timestamp < end_time)
 
     # Add the frequency constraints if set
     # if freq_start:
@@ -180,13 +176,13 @@ def fetch_rfi(
 
     if chunks:
         freq = np.arange(
-            chunks[0] * chunksize, (chunks[-1] + 1) * chunksize, dtype=np.int32,
+            chunks[0] * chunksize, (chunks[-1] + 1) * chunksize, dtype=np.int32
         )
     else:
         freq = np.zeros((0,), dtype=np.int32)
 
     output_data = np.full(
-        (len(timestamps), len(chunks), chunksize), fill_value=np.nan, dtype=np.float32,
+        (len(timestamps), len(chunks), chunksize), fill_value=np.nan, dtype=np.float32
     )
 
     for r in results:

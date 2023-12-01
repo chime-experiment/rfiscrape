@@ -71,12 +71,12 @@ def main() -> None:
                 tzinfo=datetime.timezone.utc,
             )
         except ValueError as e:
-            raise ValueError(f"Did not understand date {conf["date"]}") from e
+            raise ValueError(f"Did not understand date {conf['date']}") from e
 
         dtend = dtstart + datetime.timedelta(days=1)
 
         archive(
-            f"rfi_{dtstart.strftime('%Y-%m-%d')}.h5", dtstart, dtend, spectrum_types,
+            f"rfi_{dtstart.strftime('%Y-%m-%d')}.h5", dtstart, dtend, spectrum_types
         )
         return
 
@@ -84,12 +84,11 @@ def main() -> None:
 
     # Get the range of times in the ringbuffer as datetimes
     earliest, latest = db.RFIData.select(
-        fn.Min(db.RFIData.timestamp), fn.Max(db.RFIData.timestamp),
+        fn.Min(db.RFIData.timestamp), fn.Max(db.RFIData.timestamp)
     ).scalar(as_tuple=True)
     dtearliest = datetime.datetime.fromtimestamp(earliest, tz=datetime.timezone.utc)
     dtlatest = datetime.datetime.fromtimestamp(latest, tz=datetime.timezone.utc)
     print(f"Buffer holds data from {dtearliest} to {dtlatest}")
-
 
     # Truncate to the start of the prior UTC day
     dtstart = dtearliest.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -108,5 +107,3 @@ def main() -> None:
             archive(path, dtstart=dtstart, dtend=dtend, types=spectrum_types)
 
         dtstart = dtend
-
-
