@@ -103,7 +103,7 @@ def main() -> None:
     while dtstart + datetime.timedelta(days=1) < dtlatest:
         dtend = dtstart + datetime.timedelta(days=1)
 
-        filename = f"rfi_{dtstart.strftime('%Y-%m-%d')}.h5"
+        filename = f"rfi_{dtstart.strftime('%Y%m%d')}.h5"
 
         path = Path(conf["directory"]) / filename
 
