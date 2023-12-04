@@ -103,10 +103,11 @@ def main() -> None:
     """Main entry point for the RFI data server."""
     # Parse the command line arguments
     conf = config.process_args_and_config(
-        "rfiscrape-server",
-        "Serve the data from the buffer over HTTP.",
-        config.schema,
-        ["common", "server"],
+        prog="rfiscrape-server",
+        description="Serve the data from the buffer over HTTP.",
+        schema=config.schema,
+        sections=["common", "server"],
+        configbase="rfiscrape",
     )
 
     db.connect(conf["buffer"], readonly=True)
