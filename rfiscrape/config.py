@@ -193,22 +193,24 @@ def resolve_config(
     # Filter out unknown params
     allowed_keys = set(params.keys())
 
-    def _filter_allowed(d: dict[str, Any]) -> dict[str, any]:
+    # Ensure that we only include valid keys from the config files
+    def _filter_file(d: dict[str, Any]) -> dict[str, any]:
         return {k: v for k, v in d.items() if k in allowed_keys and v is not None}
 
-    def _filter_none(d: dict[str, Any]) -> dict[str, any]:
-        return {k: v for k, v in d.items() if v is not None}
+    # Filter out anything that would erroneously mask an earlier level
+    def _filter_cli(d: dict[str, Any]) -> dict[str, any]:
+        return {k: v for k, v in d.items() if not (k in allowed_keys and v is None)}
 
     # Initialise with the defaults
     resolved_params = {name: p.default for name, p in params.items()}
 
     # The go through the files (backwards to maintain the overriding precedence)
     for conf in reversed(file_config):
-        resolved_params |= _filter_allowed(_flatten_dict(conf))
+        resolved_params |= _filter_file(_flatten_dict(conf))
 
     # Then finally override with any CLI args. Don't filter this one in case any extra
     # arguments are added.
-    resolved_params |= _filter_none(cli_args)
+    resolved_params |= _filter_cli(cli_args)
 
     # Ensure that any type conversion is done
     return {
