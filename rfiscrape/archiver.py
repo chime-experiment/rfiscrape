@@ -86,6 +86,11 @@ def main() -> None:
     earliest, latest = db.RFIData.select(
         fn.Min(db.RFIData.timestamp), fn.Max(db.RFIData.timestamp)
     ).scalar(as_tuple=True)
+
+    if earliest is None or latest is None:
+        print("No data in buffer. Exiting.")
+        return
+
     dtearliest = datetime.datetime.fromtimestamp(earliest, tz=datetime.timezone.utc)
     dtlatest = datetime.datetime.fromtimestamp(latest, tz=datetime.timezone.utc)
     print(f"Buffer holds data from {dtearliest} to {dtlatest}")

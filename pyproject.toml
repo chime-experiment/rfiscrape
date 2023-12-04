@@ -43,6 +43,7 @@ ignore = [
     "FIX002",
     "ERA001",
     "G004",
+    "COM812",
 ]
 extend-exclude = ["code"]
 

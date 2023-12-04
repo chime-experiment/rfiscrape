@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 """A minimal dependency script for fetching kotekan RFI data and sending it on."""
 
 # NOTE: this file is used for the RFI scraping client and can only use features and
