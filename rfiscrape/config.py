@@ -119,8 +119,9 @@ def process_args_and_config(  # noqa: PLR0913
     for argname, param in flattened_params.items():
         parser.add_argument(f"--{argname}", type=str, help=param.description)
 
-    for argname, kwargs in extra_args:
-        parser.add_argument(argname, **kwargs)
+    if extra_args is not None:
+        for argname, kwargs in extra_args:
+            parser.add_argument(argname, **kwargs)
 
     args = parser.parse_args()
 
