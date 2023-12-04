@@ -220,7 +220,7 @@ def main() -> None:
         prog="rfiscrape-collector",
         description="Collect RFI stats from kotekan and assemble into a ondisk buffer.",
         schema=config.schema,
-        sections=["common", "server"],
+        sections=["common", "collector"],
         configbase="rfiscrape",
     )
     nfreq = 1024
