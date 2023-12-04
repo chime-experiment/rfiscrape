@@ -9,7 +9,7 @@ requires-python = ">=3.10"
 dynamic = ["readme"]
 version = "2023.11"
 license = { text = "MIT" }
-dependencies = ["aiohttp", "peewee", "numpy", "python-dateutil", "requests"]
+dependencies = ["aiohttp", "peewee", "numpy", "python-dateutil", "requests", "h5py"]
 
 [project.scripts]
 rfiscrape-client = "rfiscrape.client:main"

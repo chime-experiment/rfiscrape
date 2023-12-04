@@ -1,4 +1,8 @@
+#!/usr/bin/python3
 """A minimal dependency script for fetching kotekan RFI data and sending it on."""
+
+# NOTE: this file is used for the RFI scraping client and can only use features and
+# standard library modules from Python 3.6 to work on the GPU nodes.
 
 import argparse
 import math
@@ -9,7 +13,7 @@ from email.utils import parsedate_to_datetime
 
 import requests
 
-# Output JSON format
+# Message schema. JSON as:
 # schema = {
 #     "time": UTC,
 #     "freq_id": [ids],
